@@ -17,13 +17,10 @@ public:
   using IntrplMatrix = std::vector<std::vector<float>>;
   using RawData = std::vector<Point>;
 
-private:
-  RawData data;
-
 public:
-  Interpolator(RawData d) : data(d) {};
-  void loadData(RawData d) { data = d; }
-  virtual RawData getGraphData(int dotsNum) = 0;
+  Interpolator() {};
+  virtual void loadData(RawData &d) = 0;
+  virtual absl::StatusOr<RawData> getGraphData(int dotsNum) = 0;
   virtual float getValue(float value) = 0;
 };
 } // namespace s21
