@@ -1,14 +1,12 @@
 #include <QApplication>
-#include <QPushButton>
+#include "Gui/gui.hpp"
 
-int main(int argc, char **argv)
-{
- QApplication app (argc, argv);
+int main(int argc, char **argv) {
+    QApplication app(argc, argv);
 
- QPushButton button;
- button.setText("My text");
- button.setToolTip("A tooltip");
- button.show();
+    s21::Gui window;
+    window.show();
+    
 
- return app.exec();
+    return app.exec();
 }
