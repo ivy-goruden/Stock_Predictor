@@ -35,7 +35,10 @@ class CubicSplineInterPolator : public Interpolator {
                     return spline.a + spline.b*(value - spline.x_min) + spline.c*pow(value - spline.x_min,2) + spline.d*pow(value - spline.x_min,3);
                 }
             }
-            return 3;
+            const auto& spline = splines_.back();
+            return spline.a + spline.b*(value - spline.x_min) +
+                   spline.c*pow(value - spline.x_min, 2) +
+                   spline.d*pow(value - spline.x_min, 3);
         };
         void loadData(RawData& d) override{
             getParams(d);

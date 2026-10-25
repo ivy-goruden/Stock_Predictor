@@ -12,6 +12,16 @@ public:
   };
   struct Point {
     float x, y;
+
+    bool operator<(Point& other){
+      return other.x > x;
+    }
+    bool operator>(Point& other){
+      return other.x < x;
+    }
+    bool operator==(Point& other){
+      return other.x == x && other.y == y;
+    }
   };
   using Splines = std::vector<Params>;
   using IntrplMatrix = std::vector<std::vector<float>>;

@@ -14,7 +14,7 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
+DEFINES       = -DNOMINMAX -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
@@ -40,7 +40,7 @@ DISTNAME      = main1.0.0
 DISTDIR = /home/walt/Documents/Stock_Predictor/.tmp/main1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
-LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5PrintSupport.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
+LIBS          = $(SUBLIBS) -labsl_statusor -labsl_status -labsl_cord -labsl_cordz_info -labsl_cord_internal -labsl_cordz_functions -labsl_exponential_biased -labsl_cordz_handle -labsl_synchronization -labsl_graphcycles_internal -labsl_kernel_timeout_internal -labsl_tracing_internal -labsl_time -labsl_civil_time -labsl_time_zone -labsl_crc_cord_state -labsl_crc32c -labsl_crc_internal -labsl_crc_cpu_detect -labsl_leak_check -labsl_stacktrace -labsl_borrowed_fixup_buffer -labsl_hash -labsl_city -labsl_strerror -labsl_symbolize -labsl_debugging_internal -labsl_demangle_internal -labsl_demangle_rust -labsl_decode_rust_punycode -labsl_utf8_for_code_point -labsl_malloc_internal -labsl_str_format_internal -labsl_strings -labsl_strings_internal -labsl_int128 -labsl_base -Wl,--push-state,--as-needed -latomic -Wl,--pop-state -lrt -labsl_spinlock_wait -labsl_throw_delegate -labsl_raw_logging_internal -labsl_log_severity /usr/lib/x86_64-linux-gnu/libQt5PrintSupport.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -58,7 +58,8 @@ SOURCES       = main.cpp \
 		Gui/graphDrawer.cpp \
 		include/qcustomplot.cpp moc_gui.cpp \
 		moc_graphControls.cpp \
-		moc_qcustomplot.cpp
+		moc_qcustomplot.cpp \
+		moc_inter_controller.cpp
 OBJECTS       = main.o \
 		gui.o \
 		graphControls.o \
@@ -66,7 +67,8 @@ OBJECTS       = main.o \
 		qcustomplot.o \
 		moc_gui.o \
 		moc_graphControls.o \
-		moc_qcustomplot.o
+		moc_qcustomplot.o \
+		moc_inter_controller.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -130,6 +132,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resolve_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_post.prf \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/link_pkgconfig.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/warn_on.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources_functions.prf \
@@ -147,11 +150,11 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		stock_predictor.pro classes/CubicSplineInterpolator.hpp \
 		classes/interpolator.hpp \
 		classes/newtonInterpolator.hpp \
-		include/subscription.hpp \
 		Gui/gui.hpp \
 		Gui/graphControls.hpp \
 		Gui/graphDrawer.hpp \
-		include/qcustomplot.h main.cpp \
+		include/qcustomplot.h \
+		Controllers/inter_controller.hpp main.cpp \
 		Gui/gui.cpp \
 		Gui/graphControls.cpp \
 		Gui/graphDrawer.cpp \
@@ -230,6 +233,7 @@ Makefile: stock_predictor.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qm
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resolve_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_post.prf \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/link_pkgconfig.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/warn_on.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources_functions.prf \
@@ -309,6 +313,7 @@ Makefile: stock_predictor.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qm
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resolve_config.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_post.prf:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/link_pkgconfig.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/warn_on.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources_functions.prf:
@@ -339,7 +344,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents classes/CubicSplineInterpolator.hpp classes/interpolator.hpp classes/newtonInterpolator.hpp include/subscription.hpp Gui/gui.hpp Gui/graphControls.hpp Gui/graphDrawer.hpp include/qcustomplot.h $(DISTDIR)/
+	$(COPY_FILE) --parents classes/CubicSplineInterpolator.hpp classes/interpolator.hpp classes/newtonInterpolator.hpp Gui/gui.hpp Gui/graphControls.hpp Gui/graphDrawer.hpp include/qcustomplot.h Controllers/inter_controller.hpp $(DISTDIR)/
 	$(COPY_FILE) --parents main.cpp Gui/gui.cpp Gui/graphControls.cpp Gui/graphDrawer.cpp include/qcustomplot.cpp $(DISTDIR)/
 
 
@@ -372,9 +377,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp
+compiler_moc_header_make_all: moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp moc_inter_controller.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp
+	-$(DEL_FILE) moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp moc_inter_controller.cpp
 moc_gui.cpp: Gui/gui.hpp \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
@@ -389,6 +394,14 @@ moc_qcustomplot.cpp: include/qcustomplot.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/walt/Documents/Stock_Predictor/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/walt/Documents/Stock_Predictor -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/15 -I/usr/include/x86_64-linux-gnu/c++/15 -I/usr/include/c++/15/backward -I/usr/lib/gcc/x86_64-linux-gnu/15/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include include/qcustomplot.h -o moc_qcustomplot.cpp
+
+moc_inter_controller.cpp: Controllers/inter_controller.hpp \
+		classes/CubicSplineInterpolator.hpp \
+		classes/interpolator.hpp \
+		include/s21_matrix.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/walt/Documents/Stock_Predictor/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/walt/Documents/Stock_Predictor -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/15 -I/usr/include/x86_64-linux-gnu/c++/15 -I/usr/include/c++/15/backward -I/usr/lib/gcc/x86_64-linux-gnu/15/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Controllers/inter_controller.hpp -o moc_inter_controller.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -412,7 +425,11 @@ main.o: main.cpp Gui/gui.hpp
 gui.o: Gui/gui.cpp Gui/gui.hpp \
 		Gui/graphDrawer.hpp \
 		include/qcustomplot.h \
-		Gui/graphControls.hpp
+		Gui/graphControls.hpp \
+		Controllers/inter_controller.hpp \
+		classes/CubicSplineInterpolator.hpp \
+		classes/interpolator.hpp \
+		include/s21_matrix.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gui.o Gui/gui.cpp
 
 graphControls.o: Gui/graphControls.cpp 
@@ -433,6 +450,9 @@ moc_graphControls.o: moc_graphControls.cpp
 
 moc_qcustomplot.o: moc_qcustomplot.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_qcustomplot.o moc_qcustomplot.cpp
+
+moc_inter_controller.o: moc_inter_controller.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_inter_controller.o moc_inter_controller.cpp
 
 ####### Install
 

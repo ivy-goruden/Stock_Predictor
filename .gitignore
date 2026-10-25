@@ -66,3 +66,11 @@ vcpkg_installed/
 Testing/
 .cache/
 *.txt
+
+#QT autogen
+moc_*
+main
+
+#project files
+files/*
+!files/.gitkeep

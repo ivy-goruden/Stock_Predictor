@@ -3,14 +3,13 @@
 #define GUI_HPP
 
 #include <QMainWindow>
-#include "../include/subscription.hpp"
 
 namespace s21 {
 
 class GraphControls;
 class GraphDrawer;
 
-class Gui : public QMainWindow, Subscription {
+class Gui : public QMainWindow {
     Q_OBJECT
     public:
         explicit Gui(QWidget *parent = nullptr);
