@@ -22,18 +22,27 @@ void Gui::initWidgets() {
     auto *tabWidget = new QTabWidget(central);
     auto *interpolationPage = new QWidget(tabWidget);
     auto *interpolationLayout = new QVBoxLayout(interpolationPage);
-    auto *extrapolationPage = new QWidget(tabWidget);
+    auto *approximationPage = new QWidget(tabWidget);
+    auto *approximationLayout = new QVBoxLayout(approximationPage);
     tabWidget->addTab(interpolationPage, tr("Интерполяция"));
-    tabWidget->addTab(extrapolationPage, tr("Экстраполяция"));
+    tabWidget->addTab(approximationPage, tr("Аппроксимация"));
 
     auto *controls = new GraphControls(interpolationPage, 5);
     auto *drawer = new GraphDrawer(interpolationPage, 5);
     auto *controller = new InterController(5, this);
+    auto *approximationControls =
+        new GraphControls(approximationPage, 5, true);
+    auto *approximationDrawer = new GraphDrawer(approximationPage, 5);
+    auto *approximationController = new InterController(5, this);
 
     interpolationLayout->addWidget(controls, 0);
     interpolationLayout->addWidget(drawer, 1);
+    approximationLayout->addWidget(approximationControls, 0);
+    approximationLayout->addWidget(approximationDrawer, 1);
     layout->addWidget(tabWidget);
 
+    connect(controls, &GraphControls::colorSelected,
+        drawer, &GraphDrawer::setGraphColor);
     connect(controls, &GraphControls::loadRequested,
         controller, &InterController::parseFile);
     connect(controls, &GraphControls::visibilityRequested,
@@ -61,6 +70,45 @@ void Gui::initWidgets() {
             [this](const QString& message) {
         QMessageBox::warning(this, tr("Ошибка обработки данных"), message);
     });
+
+    connect(approximationControls, &GraphControls::colorSelected,
+        approximationDrawer, &GraphDrawer::setGraphColor);
+    connect(approximationControls, &GraphControls::loadRequested,
+        approximationController, &InterController::parseFile);
+    connect(approximationControls, &GraphControls::visibilityRequested,
+        approximationDrawer, &GraphDrawer::toggleVisibility);
+    connect(approximationControls, &GraphControls::removeRequested,
+        approximationController, &InterController::removeGraph);
+    connect(approximationControls, &GraphControls::removeRequested,
+        approximationDrawer, &GraphDrawer::removeGraphAt);
+    connect(approximationControls, &GraphControls::calculateRequested,
+        approximationController,
+        &InterController::calculateApproximatedGraphValue);
+    connect(approximationControls,
+        &GraphControls::approximationDrawRequested,
+        approximationController,
+        &InterController::drawLoadedApproximations);
+    connect(approximationController,
+        &InterController::graphApproximated, approximationDrawer,
+        [approximationDrawer](int index, const QVector<double>& xData,
+                              const QVector<double>& yData,
+                              const QVector<double>& sourceXData,
+                              const QVector<double>& sourceYData, int,
+                              int forecastDays) {
+            approximationDrawer->newApproximationGraph(
+                index, xData, yData, sourceXData, sourceYData, forecastDays);
+        });
+    connect(approximationController,
+        &InterController::pointCountRangeChanged, approximationControls,
+        &GraphControls::changePointsRange);
+    connect(approximationController,
+        &InterController::approximationValueCalculated,
+        approximationControls, &GraphControls::setCalculatedValue);
+    connect(approximationController, &InterController::errorOccurred, this,
+            [this](const QString& message) {
+        QMessageBox::warning(this, tr("Ошибка обработки данных"), message);
+    });
+
     setCentralWidget(central);
     resize(800, 600);
 }

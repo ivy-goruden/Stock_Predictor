@@ -5,7 +5,8 @@ SOURCES += main.cpp \
 		   Gui/gui.cpp \
 		   Gui/graphControls.cpp \
 		   Gui/graphDrawer.cpp \
-		   include/qcustomplot.cpp
+		   include/qcustomplot.cpp\
+		   include/qtcolorpicker.cpp
 # Header files (optional, but helps IDEs and qmake detect dependencies)
 HEADERS += $$files(classes/*.hpp)
 HEADERS +=$$files(include/*.hpp, true)
@@ -13,7 +14,8 @@ HEADERS += Gui/gui.hpp \
 		   Gui/graphControls.hpp \
 		   Gui/graphDrawer.hpp \
 		   include/qcustomplot.h \
-		   Controllers/inter_controller.hpp
+		   Controllers/inter_controller.hpp\
+		   include/qtcolorpicker.h
 
 # .ui files from Qt Designer (optional)
 # FORMS += mainwindow.ui

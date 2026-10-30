@@ -56,19 +56,23 @@ SOURCES       = main.cpp \
 		Gui/gui.cpp \
 		Gui/graphControls.cpp \
 		Gui/graphDrawer.cpp \
-		include/qcustomplot.cpp moc_gui.cpp \
+		include/qcustomplot.cpp \
+		include/qtcolorpicker.cpp moc_gui.cpp \
 		moc_graphControls.cpp \
 		moc_qcustomplot.cpp \
-		moc_inter_controller.cpp
+		moc_inter_controller.cpp \
+		moc_qtcolorpicker.cpp
 OBJECTS       = main.o \
 		gui.o \
 		graphControls.o \
 		graphDrawer.o \
 		qcustomplot.o \
+		qtcolorpicker.o \
 		moc_gui.o \
 		moc_graphControls.o \
 		moc_qcustomplot.o \
-		moc_inter_controller.o
+		moc_inter_controller.o \
+		moc_qtcolorpicker.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -150,15 +154,18 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		stock_predictor.pro classes/CubicSplineInterpolator.hpp \
 		classes/interpolator.hpp \
 		classes/newtonInterpolator.hpp \
+		classes/PolynomialApproximator.hpp \
 		Gui/gui.hpp \
 		Gui/graphControls.hpp \
 		Gui/graphDrawer.hpp \
 		include/qcustomplot.h \
-		Controllers/inter_controller.hpp main.cpp \
+		Controllers/inter_controller.hpp \
+		include/qtcolorpicker.h main.cpp \
 		Gui/gui.cpp \
 		Gui/graphControls.cpp \
 		Gui/graphDrawer.cpp \
-		include/qcustomplot.cpp
+		include/qcustomplot.cpp \
+		include/qtcolorpicker.cpp
 QMAKE_TARGET  = main
 DESTDIR       = 
 TARGET        = main
@@ -344,8 +351,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents classes/CubicSplineInterpolator.hpp classes/interpolator.hpp classes/newtonInterpolator.hpp Gui/gui.hpp Gui/graphControls.hpp Gui/graphDrawer.hpp include/qcustomplot.h Controllers/inter_controller.hpp $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp Gui/gui.cpp Gui/graphControls.cpp Gui/graphDrawer.cpp include/qcustomplot.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents classes/CubicSplineInterpolator.hpp classes/interpolator.hpp classes/newtonInterpolator.hpp classes/PolynomialApproximator.hpp Gui/gui.hpp Gui/graphControls.hpp Gui/graphDrawer.hpp include/qcustomplot.h Controllers/inter_controller.hpp include/qtcolorpicker.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp Gui/gui.cpp Gui/graphControls.cpp Gui/graphDrawer.cpp include/qcustomplot.cpp include/qtcolorpicker.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -377,9 +384,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp moc_inter_controller.cpp
+compiler_moc_header_make_all: moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp moc_inter_controller.cpp moc_qtcolorpicker.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp moc_inter_controller.cpp
+	-$(DEL_FILE) moc_gui.cpp moc_graphControls.cpp moc_qcustomplot.cpp moc_inter_controller.cpp moc_qtcolorpicker.cpp
 moc_gui.cpp: Gui/gui.hpp \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
@@ -399,14 +406,27 @@ moc_inter_controller.cpp: Controllers/inter_controller.hpp \
 		classes/CubicSplineInterpolator.hpp \
 		classes/interpolator.hpp \
 		include/s21_matrix.h \
+		classes/PolynomialApproximator.hpp \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/walt/Documents/Stock_Predictor/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/walt/Documents/Stock_Predictor -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/15 -I/usr/include/x86_64-linux-gnu/c++/15 -I/usr/include/c++/15/backward -I/usr/lib/gcc/x86_64-linux-gnu/15/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include Controllers/inter_controller.hpp -o moc_inter_controller.cpp
 
+moc_qtcolorpicker.cpp: include/qtcolorpicker.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/walt/Documents/Stock_Predictor/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/walt/Documents/Stock_Predictor -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/15 -I/usr/include/x86_64-linux-gnu/c++/15 -I/usr/include/c++/15/backward -I/usr/lib/gcc/x86_64-linux-gnu/15/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include include/qtcolorpicker.h -o moc_qtcolorpicker.cpp
+
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
-compiler_moc_source_make_all:
+compiler_moc_source_make_all: qtcolorpicker.moc
 compiler_moc_source_clean:
+	-$(DEL_FILE) qtcolorpicker.moc
+qtcolorpicker.moc: include/qtcolorpicker.cpp \
+		include/qtcolorpicker.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/walt/Documents/Stock_Predictor/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/walt/Documents/Stock_Predictor -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/15 -I/usr/include/x86_64-linux-gnu/c++/15 -I/usr/include/c++/15/backward -I/usr/lib/gcc/x86_64-linux-gnu/15/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include include/qtcolorpicker.cpp -o qtcolorpicker.moc
+
 compiler_uic_make_all:
 compiler_uic_clean:
 compiler_yacc_decl_make_all:
@@ -415,7 +435,7 @@ compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean 
+compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean compiler_moc_source_clean 
 
 ####### Compile
 
@@ -425,22 +445,30 @@ main.o: main.cpp Gui/gui.hpp
 gui.o: Gui/gui.cpp Gui/gui.hpp \
 		Gui/graphDrawer.hpp \
 		include/qcustomplot.h \
+		Gui/gui_global.hpp \
 		Gui/graphControls.hpp \
 		Controllers/inter_controller.hpp \
 		classes/CubicSplineInterpolator.hpp \
 		classes/interpolator.hpp \
-		include/s21_matrix.h
+		include/s21_matrix.h \
+		classes/PolynomialApproximator.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gui.o Gui/gui.cpp
 
-graphControls.o: Gui/graphControls.cpp 
+graphControls.o: Gui/graphControls.cpp Gui/graphControls.hpp \
+		include/qtcolorpicker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o graphControls.o Gui/graphControls.cpp
 
 graphDrawer.o: Gui/graphDrawer.cpp Gui/graphDrawer.hpp \
-		include/qcustomplot.h
+		include/qcustomplot.h \
+		Gui/gui_global.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o graphDrawer.o Gui/graphDrawer.cpp
 
 qcustomplot.o: include/qcustomplot.cpp include/qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qcustomplot.o include/qcustomplot.cpp
+
+qtcolorpicker.o: include/qtcolorpicker.cpp include/qtcolorpicker.h \
+		qtcolorpicker.moc
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qtcolorpicker.o include/qtcolorpicker.cpp
 
 moc_gui.o: moc_gui.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_gui.o moc_gui.cpp
@@ -453,6 +481,9 @@ moc_qcustomplot.o: moc_qcustomplot.cpp
 
 moc_inter_controller.o: moc_inter_controller.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_inter_controller.o moc_inter_controller.cpp
+
+moc_qtcolorpicker.o: moc_qtcolorpicker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_qtcolorpicker.o moc_qtcolorpicker.cpp
 
 ####### Install
 

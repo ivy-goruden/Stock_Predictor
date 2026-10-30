@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include "../classes/CubicSplineInterpolator.hpp"
+#include "../classes/PolynomialApproximator.hpp"
 #include <cmath>
 namespace s21{
 class InterController : public QObject {
@@ -26,9 +27,11 @@ class InterController : public QObject {
         };
         std::vector<parsedGraph> parsedGraphs;
         std::vector<std::unique_ptr<CubicSplineInterPolator>> interpolatedGraphs;
+        std::vector<std::unique_ptr<PolynomialApproximator>> approximatedGraphs;
     public:
         explicit InterController(int maxGraphs, QObject *parent = nullptr)
-            : QObject(parent), parsedGraphs(maxGraphs), interpolatedGraphs(maxGraphs) {
+                        : QObject(parent), parsedGraphs(maxGraphs), interpolatedGraphs(maxGraphs),
+                            approximatedGraphs(maxGraphs) {
         };
         void parseFile(const QString& filename, int index){
             if(index < 0 || index >= static_cast<int>(parsedGraphs.size())) return;
@@ -64,9 +67,9 @@ class InterController : public QObject {
 
                 rd.push_back(CubicSplineInterPolator::Point{dateValue, value});
             }
-            if (rd.size() < 4) {
+            if (rd.size() < 2) {
                 emit errorOccurred(
-                    QString("Нужно минимум 4 корректные точки; прочитано: %1")
+                    QString("Нужно минимум 2 корректные точки; прочитано: %1")
                         .arg(rd.size()));
                 return;
             }
@@ -83,6 +86,8 @@ class InterController : public QObject {
             }
 
             parsedGraphs[index] = normalizeGraph(std::move(rd));
+            interpolatedGraphs[index].reset();
+            approximatedGraphs[index].reset();
             updatePointCountRange();
             // Close the file
             file.close();
@@ -100,6 +105,10 @@ class InterController : public QObject {
                 return;
             }
             const auto& graph = parsedGraphs[index];
+            if (graph.data.size() < 4) {
+                emit errorOccurred(tr("Для кубического сплайна нужно минимум 4 точки"));
+                return;
+            }
             const int minimum = static_cast<int>(graph.data.size()) + 1;
             const int maximum = minimum * 100;
             if (dotsCount < minimum || dotsCount > maximum) {
@@ -140,10 +149,85 @@ class InterController : public QObject {
             }
         }
 
+        void drawLoadedApproximations(int dotsCount, int degree,
+                                      int forecastDays) {
+            for (int index = 0; index < static_cast<int>(parsedGraphs.size());
+                 ++index) {
+                if (!parsedGraphs[index].data.empty()) {
+                    drawApproximatedGraph(index, dotsCount, degree, forecastDays);
+                }
+            }
+        }
+
+        void drawApproximatedGraph(int index, int dotsCount, int degree,
+                                   int forecastDays) {
+            if (index < 0 || index >= static_cast<int>(parsedGraphs.size()) ||
+                parsedGraphs[index].data.empty()) {
+                return;
+            }
+            const auto& graph = parsedGraphs[index];
+            if (degree < 0 || degree >= static_cast<int>(graph.data.size())) {
+                emit errorOccurred(
+                    tr("Степень полинома должна быть от 0 до числа точек минус 1"));
+                return;
+            }
+            if (forecastDays < 0) {
+                emit errorOccurred(tr("Количество дней прогноза не может быть отрицательным"));
+                return;
+            }
+            if (dotsCount < static_cast<int>(graph.data.size())) {
+                emit errorOccurred(
+                    tr("Количество точек графика не должно быть меньше исходных данных"));
+                return;
+            }
+
+            auto initialized = PolynomialApproximator::Init(graph.data, degree);
+            if (!initialized.ok()) {
+                emit errorOccurred(QString::fromStdString(
+                    initialized.status().message().data()));
+                return;
+            }
+
+            const float maxX = 1.0f + forecastDays / graph.dateRange;
+            auto graphDataStatus = initialized->getGraphData(dotsCount, maxX);
+            if (!graphDataStatus.ok()) {
+                emit errorOccurred(QString::fromStdString(
+                    graphDataStatus.status().message().data()));
+                return;
+            }
+
+            QVector<double> xData;
+            QVector<double> yData;
+            QVector<double> sourceXData;
+            QVector<double> sourceYData;
+            const auto& graphData = graphDataStatus.value();
+            xData.reserve(static_cast<int>(graphData.size()));
+            yData.reserve(static_cast<int>(graphData.size()));
+            sourceXData.reserve(static_cast<int>(graph.data.size()));
+            sourceYData.reserve(static_cast<int>(graph.data.size()));
+            for (const auto& point : graphData) {
+                xData.push_back(
+                    (point.x * graph.dateRange + graph.dateOrigin) * 86400.0);
+                yData.push_back(point.y * graph.maxValue);
+            }
+            for (const auto& point : graph.data) {
+                sourceXData.push_back(
+                    (point.x * graph.dateRange + graph.dateOrigin) * 86400.0);
+                sourceYData.push_back(point.y * graph.maxValue);
+            }
+
+            approximatedGraphs[index] =
+                std::make_unique<PolynomialApproximator>(
+                    std::move(initialized.value()));
+            emit graphApproximated(index, xData, yData, sourceXData, sourceYData,
+                                   degree, forecastDays);
+        }
+
         void removeGraph(int index) {
             if (index < 0 || index >= static_cast<int>(parsedGraphs.size())) return;
             parsedGraphs[index] = parsedGraph{};
             interpolatedGraphs[index].reset();
+            approximatedGraphs[index].reset();
             updatePointCountRange();
         }
 
@@ -165,11 +249,36 @@ class InterController : public QObject {
                 interpolatedGraphs[index]->getValue(normalizedDate) * graph.maxValue);
         }
 
+        void calculateApproximatedGraphValue(int index, const QString& date) {
+            if (index < 0 || index >= static_cast<int>(approximatedGraphs.size()) ||
+                !approximatedGraphs[index]) {
+                emit errorOccurred(
+                    tr("Сначала постройте аппроксимацию выбранного графика"));
+                return;
+            }
+            float dateValue = 0.0f;
+            if (!tryParseDate(date.toStdString(), dateValue)) {
+                emit errorOccurred(tr("Введите корректную дату в формате ДД.ММ.ГГГГ"));
+                return;
+            }
+            const auto& graph = parsedGraphs[index];
+            const float normalizedDate =
+                (dateValue - graph.dateOrigin) / graph.dateRange;
+            emit approximationValueCalculated(
+                index, approximatedGraphs[index]->getValue(normalizedDate) *
+                           graph.maxValue);
+        }
+
 signals:
     void graphInterpolated(int index, QVector<double> xData,
                                QVector<double> yData);
+    void graphApproximated(int index, QVector<double> xData,
+                           QVector<double> yData, QVector<double> sourceXData,
+                           QVector<double> sourceYData, int degree,
+                           int forecastDays);
     void errorOccurred(QString message);
     void calculatedValue(int index, float value);
+    void approximationValueCalculated(int index, float value);
     void pointCountRangeChanged(int minimum, int maximum);
 
     private:

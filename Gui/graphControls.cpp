@@ -6,11 +6,14 @@
 #include <QDate>
 #include <QSizePolicy>
 #include <QSpinBox>
+#include <algorithm>
+#include "../include/qtcolorpicker.h"
 
 namespace s21 {
 
-GraphControls::GraphControls(QWidget *parent, int maxGraphs)
-: QWidget(parent), maxGraphs(maxGraphs) {
+GraphControls::GraphControls(QWidget *parent, int maxGraphs,
+							 bool approximationMode)
+: QWidget(parent), maxGraphs(maxGraphs), approximationMode(approximationMode) {
 	auto *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSizeConstraint(QLayout::SetMinimumSize);
@@ -37,10 +40,31 @@ GraphControls::GraphControls(QWidget *parent, int maxGraphs)
 	actionsLayout->addWidget(drawButton);
 	actionsLayout->addWidget(dotsLabel);
 	actionsLayout->addWidget(dotsCount);
+	if (approximationMode) {
+		polynomialDegree = new QSpinBox(actions);
+		polynomialDegree->setPrefix(tr("Степень: "));
+		polynomialDegree->setRange(0, 100);
+		polynomialDegree->setValue(2);
+		polynomialDegree->setToolTip(
+				tr("Высокая степень может резко менять прогноз за пределами исходных данных"));
+		polynomialDegree->setEnabled(false);
+		forecastDays = new QSpinBox(actions);
+		forecastDays->setPrefix(tr("Прогноз, дней: "));
+		forecastDays->setRange(0, 3650);
+		forecastDays->setValue(2);
+		actionsLayout->addWidget(polynomialDegree);
+		actionsLayout->addWidget(forecastDays);
+	}
 	actionsLayout->addStretch();
 	layout->addWidget(actions);
 	connect(drawButton, &QPushButton::clicked, this, [this] {
-		if (dotsCount->isEnabled()) emit drawRequested(dotsCount->value());
+		if (!dotsCount->isEnabled()) return;
+		if (this->approximationMode) {
+			emit approximationDrawRequested(dotsCount->value(),
+					polynomialDegree->value(), forecastDays->value());
+		} else {
+			emit drawRequested(dotsCount->value());
+		}
 	});
 	updateAddButton();
 }
@@ -83,6 +107,13 @@ void GraphControls::createNewRow(const QString& fileName, int seriesId) {
 	auto *calculateButton = new QPushButton(tr("="), rowWidget);
 	calculateButton->setToolTip(tr("Рассчитать значение для выбранной даты"));
 	calculateButton->setFixedSize(36, 30);
+	auto *colorPicker = new QtColorPicker(rowWidget);
+	colorPicker->setStandardColors();
+	const QVector<QColor> defaultColors = {Qt::red, Qt::blue, Qt::darkGreen,
+			Qt::magenta, Qt::darkCyan};
+	colorPicker->setCurrentColor(defaultColors[seriesId % defaultColors.size()]);
+	colorPicker->setToolTip(tr("Выбрать цвет графика"));
+	colorPicker->setFixedSize(76, 30);
 	auto *dateEdit = new QDateEdit(QDate::currentDate(), rowWidget);
 	dateEdit->setCalendarPopup(true);
 	dateEdit->setDisplayFormat("dd.MM.yyyy");
@@ -96,12 +127,15 @@ void GraphControls::createNewRow(const QString& fileName, int seriesId) {
 	rowLayout->addWidget(removeButton);
 	rowLayout->addWidget(fileLabel, 1);
 	rowLayout->addWidget(visibilityButton);
+	rowLayout->addWidget(colorPicker);
 	rowLayout->addWidget(calculateButton);
 	rowLayout->addWidget(dateEdit);
 	rowLayout->addWidget(valueEdit);
 	rowsLayout->addWidget(rowWidget);
 	rows.push_back(Row{seriesId, rowWidget, visibilityButton, calculateButton,
+			colorPicker,
 			dateEdit, valueEdit, true});
+	emit colorSelected(seriesId, colorPicker->currentColor());
 
 	connect(removeButton, &QPushButton::clicked, this,
 			[this, seriesId] { removeRow(seriesId); });
@@ -122,6 +156,10 @@ void GraphControls::createNewRow(const QString& fileName, int seriesId) {
 		valueEdit->clear();
 		emit calculateRequested(seriesId, dateEdit->date().toString("dd.MM.yyyy"));
 	});
+	connect(colorPicker, &QtColorPicker::colorChanged, this,
+			[this, seriesId](const QColor &color) {
+		emit colorSelected(seriesId, color);
+	});
 
 }
 
@@ -136,8 +174,18 @@ void GraphControls::setCalculatedValue(int seriesId, float value) {
 void GraphControls::changePointsRange(int minimum, int maximum) {
 	const bool hasRange = minimum > 0 && maximum >= minimum;
 	dotsCount->setEnabled(hasRange);
+	if (approximationMode) {
+		polynomialDegree->setEnabled(hasRange);
+		polynomialDegree->setRange(0, hasRange ? minimum - 2 : 0);
+		if (hasRange && polynomialDegree->value() == 0) {
+			polynomialDegree->setValue(1);
+		}
+	}
 	if (hasRange) {
 		dotsCount->setRange(minimum, maximum);
+		if (approximationMode) {
+			dotsCount->setValue(std::min(minimum * 5, maximum));
+		}
 	} else {
 		dotsCount->setRange(0, 0);
 	}

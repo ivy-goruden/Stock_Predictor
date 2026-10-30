@@ -16,6 +16,8 @@ class Gui : public QMainWindow {
 
     private:
         void initWidgets();
+    signals:
+        void strokeWidthChanged();
 };
 } // namespace s21
 
